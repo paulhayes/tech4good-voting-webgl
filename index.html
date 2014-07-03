@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hello World</title>
+</head>
+<body>
+
+<canvas id="viewport" width="100%" height="100%"></canvas>
+<script src="js/dat.gui.min.js"></script>
+<script id="fragment" type="x-shader/x-fragment">
+#ifdef GL_ES
+precision lowp float;
+#endif
+
+
+
+//uniform vec2 mouse;
+uniform vec2 resolution;
+uniform vec2 mouse;
+uniform float time;
+#define PI 3.1414159265359
+#define M  0.9
+#define D  0.6
+
+#define fmod 0.1
+
+void main()
+{
+  vec2 p = (gl_FragCoord.xy - 0.5* resolution) / min(resolution.x, resolution.y);
+    vec2 t = vec2(gl_FragCoord.xy / resolution);
+
+  vec3 c = vec3(0);
+    float y=0.;
+  float x=0.;
+  for(int i = 0; i < 200; i++) {
+    float t =  float(i) * (20.*mouse.x*mouse.y+0.1*time) * 2.;
+     x = float(i) / (200.*1./1.3) * cos(0.007*t);
+     y = 1.3 * sin(t * 0.001);
+    vec2 o = 0.3 * vec2(x, y);
+    float r = fract(y+x);
+    float g = 1. - r;
+    c += 0.0007 / (length(p-o)) * vec3(r, g, x+y);
+  }
+  
+  vec3 oscColor = mix(c, vec3(1, 1, 1)-c, 0.);
+
+  gl_FragColor = vec4(oscColor, 1);
+}
+</script>
+
+<script src="js/glsl.min.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+  if (!Glsl.supported()) alert("WebGL is not supported.");
+
+  var parameters = {};
+  var glsl = Glsl({
+    canvas: document.getElementById("viewport"),
+    fragment: document.getElementById("fragment").textContent,
+    variables: {
+      time: 0, // The time in ms
+      mouse: { x:0, y:0 }
+    },
+    update: function (time) {
+      this.set("time", time);
+      this.set("mouse", this.variables.mouse );
+      //gl.uniform2f( currentProgram.uniformsCache[ 'resolution' ], parameters.screenWidth, parameters.screenHeight );
+      this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
+    }
+  }).start();
+  var gui = new dat.GUI();
+  gui.add(glsl.variables.mouse,"x",0,1);
+  gui.add(glsl.variables.mouse,"y",0,1);
+
+  function onWindowResize( event ) {
+      glsl.canvas.width = window.innerWidth;
+      glsl.canvas.height = window.innerHeight;
+      glsl.gl.viewport( 0, 0, glsl.canvas.width, glsl.canvas.height );
+
+  }
+
+  onWindowResize();
+  window.addEventListener( 'resize', onWindowResize, false );
+
+</script>
+</body>
+</html>
