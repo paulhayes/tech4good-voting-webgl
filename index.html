@@ -18,7 +18,6 @@
 precision lowp float;
 #endif
 
-
 uniform vec2 resolution;
 uniform float progress;
 uniform float time;
@@ -67,23 +66,37 @@ void main()
     update: function (time) {
       this.set("time", time / 1000 );
       this.set("progress", this.variables.progress );
-      //gl.uniform2f( currentProgram.uniformsCache[ 'resolution' ], parameters.screenWidth, parameters.screenHeight );
       this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
     }
   }).start();
   var gui = new dat.GUI();
-  gui.add(glsl.variables,"progress",0,1);
-
+  
   function onWindowResize( event ) {
       glsl.canvas.width = window.innerWidth;
       glsl.canvas.height = window.innerHeight;
       glsl.gl.viewport( 0, 0, glsl.canvas.width, glsl.canvas.height );
       glsl.variables.screenWidth = window.innerWidth;
       glsl.variables.screenHeight = window.innerHeight;
+
   }
 
+  function requestFullScreen() {
+    var element = document.body;
+    var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+    if (requestMethod) { 
+        requestMethod.call(element);
+    }
+  }
+
+  //requestFullScreen(document.body);
   onWindowResize();
   window.addEventListener( 'resize', onWindowResize, false );
+  glsl.variables.fullscreen = requestFullScreen;
+
+
+  gui.add(glsl.variables,"fullscreen");
+  gui.add(glsl.variables,"progress",0,1);
 
 </script>
 </body>
