@@ -123,11 +123,11 @@ void main()
               },
               update: function (time) {
                 this.set("time", time / 1000 );
-                this.set("progress", this.variables.progress );
+                this.sync("progress");
                 this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
                 this.sync("debugMode");
                 //this.set("videoRes", {x:640,y:480});
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                if (video.readyState === video.HAVE_ENOUGH_DATA && this.variables.debugMode) {
                   this.sync("video");
                 }
               }
