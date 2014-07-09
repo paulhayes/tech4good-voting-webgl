@@ -45,7 +45,10 @@ class CamVoter(object):
     def get_vote_count(self):
         self.get_blobs()
         self.filter_blobs()
-        return self.filtered_blobs.count()
+        try:
+            return self.filtered_blobs.count()
+        except:
+            return 0
         
     def filter_blobs(self):
         self.filtered_blobs = self.all_blobs and self.all_blobs.filter([(math.fabs(b.angle()) > self.angle) and (b.area() > self.area_min) and (b.area() < self.area_max) for b in self.all_blobs]) or scv.FeatureSet()
