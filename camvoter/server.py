@@ -16,7 +16,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
-display = scv.Display()
+#display = scv.Display()
 cam = scv.Camera()
 camv = CamVoterHSV()
 
@@ -33,7 +33,7 @@ def test_message(message):
     if votes:
         for b in camv.filtered_blobs:
             camv.image.drawCircle((b.x, b.y), 5, scv.Color.RED)
-    camv.image.show()
+    #camv.image.show()
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
