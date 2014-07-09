@@ -33,15 +33,15 @@ def test_message(message):
     votes = camv.get_vote_count()
     logger.debug('We have %d votes'%votes)
     #votes = random.randrange(1,2)
-    #camv.image_hot.save('images/cam{}.jpg'.format(imageCount))
+    camv.image_hot.save('images/cam{}.jpg'.format(imageCount))
+    imageCount+=1
+    if imageCount == maxImages :
+        imageCount = 0;
     #print( 'target {}'.format( camv.area_max ) );
-    #for b in camv.all_blobs:
-    #    print('blob {}, {}'.format(b.angle(),b.area()))
+    for b in camv.all_blobs:
+        print('blob {}, {}'.format(b.angle(),b.area()))
     emit('vote count', {'data': {'count': votes}})
     
-    #imageCount+=1
-    #if imageCount == maxImages :
-    #    imageCount = 0;
     #if votes:
     #    for b in camv.filtered_blobs:
     #        camv.image.drawCircle((b.x, b.y), 5, scv.Color.RED)

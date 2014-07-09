@@ -21,8 +21,8 @@ BLOB_FILTER_DEFAULTS = {
     'stretch_max':255,
     'angle': 70,
     'area_max': 400,
-    'area_min': 20,
-    'thresh_V':220,
+    'area_min': 10,
+    'thresh_V':140,
     'draw_color':scv.Color.PUCE,
     'draw_color_filtered':scv.Color.RED,
     'colors': VOTING_COLORS
@@ -45,6 +45,7 @@ class CamVoter(object):
     def get_vote_count(self):
         self.get_blobs()
         self.filter_blobs()
+        self.show_blobs()
         try:
             return len( self.filtered_blobs )
         except:
@@ -68,8 +69,8 @@ class CamVoter(object):
         for b in self.filtered_blobs:
             self.image.drawCircle((b.x, b.y), 5, self.draw_color_filtered)
             
-        while True:
-            self.image.show()
+        #while True:
+        #   self.image.show()
         
             
 class CamVoterCol(CamVoter):
@@ -103,7 +104,7 @@ class CamVoterHSV(CamVoter):
 
     def get_blobs(self):
         
-        self.image_hot = cv2.inRange(np.rot90(self.image_HSV.getNumpyCv2()), np.array([0, 0, self.thresh_V]), np.array([179, 255, 255]))
+        self.image_hot = cv2.inRange(np.rot90(self.image_HSV.getNumpyCv2()), np.array([0, 0, self.thresh_V]), np.array([255, 255, 255]))
         # and back to scv <sigh>
         self.image_hot = scv.Image(self.image_hot, cv2image = True).dilate(self.dilate)
         self.all_blobs = self.image_hot.findBlobs() 
@@ -115,8 +116,8 @@ class CamVoterHSV(CamVoter):
         for b in self.filtered_blobs:
             b.draw(color=self.draw_color_filtered, width=2)
             
-        while True:
-            self.image.sideBySide(self.image_hot.applyLayers()).show()
+        #while True:
+            #self.image.sideBySide(self.image_hot.applyLayers()).show()
             # self.all_blobs.show()
     
 
