@@ -7,7 +7,7 @@ from random import randint
 import logging
 logger = logging.getLogger("__name__")
 logger.setLevel(logging.DEBUG)
-
+import random
 import SimpleCV as scv
 import cvutils
 from camvoter import CamVoterHSV, CamVoterCol
@@ -19,6 +19,8 @@ socketio = SocketIO(app)
 #display = scv.Display()
 cam = scv.Camera()
 camv = CamVoterHSV()
+imageCount = 1
+maxImages = 100
 
 @app.route('/')
 def index():
@@ -26,13 +28,23 @@ def index():
 
 @socketio.on('get votes', namespace='/test')
 def test_message(message):
+    global imageCount
     camv.set_image(cam.getImage().flipHorizontal())
     votes = camv.get_vote_count()
     logger.debug('We have %d votes'%votes)
+    #votes = random.randrange(1,2)
+    #camv.image_hot.save('images/cam{}.jpg'.format(imageCount))
+    #print( 'target {}'.format( camv.area_max ) );
+    #for b in camv.all_blobs:
+    #    print('blob {}, {}'.format(b.angle(),b.area()))
     emit('vote count', {'data': {'count': votes}})
-    if votes:
-        for b in camv.filtered_blobs:
-            camv.image.drawCircle((b.x, b.y), 5, scv.Color.RED)
+    
+    #imageCount+=1
+    #if imageCount == maxImages :
+    #    imageCount = 0;
+    #if votes:
+    #    for b in camv.filtered_blobs:
+    #        camv.image.drawCircle((b.x, b.y), 5, scv.Color.RED)
     #camv.image.show()
 
 @socketio.on('connect', namespace='/test')

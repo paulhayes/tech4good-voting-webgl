@@ -14,7 +14,7 @@ import numpy as np
 import argparse
 
 
-VOTING_COLORS = [scv.Color.YELLOW]
+VOTING_COLORS = [scv.Color.YELLOW,scv.Color.RED]
 BLOB_FILTER_DEFAULTS = {
     'dilate':2,
     'stretch_min':200,
@@ -46,12 +46,19 @@ class CamVoter(object):
         self.get_blobs()
         self.filter_blobs()
         try:
-            return self.filtered_blobs.count()
+            return len( self.filtered_blobs )
         except:
             return 0
         
     def filter_blobs(self):
-        self.filtered_blobs = self.all_blobs and self.all_blobs.filter([(math.fabs(b.angle()) > self.angle) and (b.area() > self.area_min) and (b.area() < self.area_max) for b in self.all_blobs]) or scv.FeatureSet()
+        #[(math.fabs(b.angle()) > self.angle) and (b.area() > self.area_min) and (b.area() < self.area_max) for b in self.all_blobs] 
+        #or scv.FeatureSet()
+        #self.all_blobs and 
+        #and abs( b.angle() ) > self.angle
+
+        if self.all_blobs is None : 
+            self.all_blobs = []
+        self.filtered_blobs = [ b for b in self.all_blobs if b.area() < self.area_max and b.area() > self.area_min ]
         return self.filtered_blobs
 
     def show_blobs(self):
@@ -96,11 +103,11 @@ class CamVoterHSV(CamVoter):
 
     def get_blobs(self):
         
-        self.image_hot = cv2.inRange(self.image_HSV.getNumpyCv2(), np.array([0, 0, self.thresh_V]), np.array([179, 255, 255]))
+        self.image_hot = cv2.inRange(np.rot90(self.image_HSV.getNumpyCv2()), np.array([0, 0, self.thresh_V]), np.array([179, 255, 255]))
         # and back to scv <sigh>
         self.image_hot = scv.Image(self.image_hot, cv2image = True).dilate(self.dilate)
         self.all_blobs = self.image_hot.findBlobs() 
-         
+
     def show_blobs(self):
         
         for b in self.all_blobs:
