@@ -38,15 +38,21 @@ def test_message(message):
         imageCount+=1
         if imageCount == maxImages :
             imageCount = 0;
+
     #print( 'target {}'.format( camv.area_max ) );
-    for b in camv.all_blobs:
-        print('blob {}, {}'.format(b.angle(),b.area()))
+    #for b in camv.all_blobs:
+    #    print('blob {}, {}'.format(b.angle(),b.area()))
     emit('vote count', {'data': {'count': votes}})
     
     #if votes:
     #    for b in camv.filtered_blobs:
     #        camv.image.drawCircle((b.x, b.y), 5, scv.Color.RED)
     #camv.image.show()
+
+@socketio.on('set params', namespace='/test')
+def set_params(message):
+    camv.__dict__.update(message)
+    
 
 @socketio.on('connect', namespace='/test')
 def test_connect():

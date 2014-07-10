@@ -91,7 +91,12 @@ void main()
     time: 0, // The time in ms
     progress: 0,
     text: document.getElementById("textCanvas"),
-    textPosition: {x:0.001,y:0.001}
+    textPosition: {x:0.001,y:0.001},
+    detection : {
+      area_max : 400,
+      area_min : 10,
+      thresh_V : 140
+    }
   };
   var glsl = Glsl({
     canvas: document.getElementById("viewport"),
@@ -128,6 +133,7 @@ void main()
   var gui = new dat.GUI();
   gui.remember(parameters);
   gui.remember(parameters.textPosition);
+  gui.remember(parameters.detection);
 
   function onWindowResize( event ) {
       glsl.canvas.width = window.innerWidth;
@@ -160,6 +166,9 @@ void main()
   gui.add(parameters,"duration");
   gui.add(glsl.variables.textPosition,"x",0.0001,1.0);
   gui.add(glsl.variables.textPosition,"y",0.0001,1.0);
+  gui.add(parameters.detection,"area_min");
+  gui.add(parameters.detection,"area_max");
+  gui.add(parameters.detection,"thresh_V");
 
 $(document).ready(function(){
     //setTimeout(renderText,500,"","100px NovaSans","text");
@@ -170,12 +179,16 @@ $(document).ready(function(){
     var isVoting = false;
     var voteDuration = 10;
     $(document).keypress(function(e){
-        //console.log(e);
+        console.log(e);
         if( e.keyCode == 32 ) {          
           //startVoting();
           startCountdown();
         }
         if( e.keyCode == 99 ) clearVoting();
+        if( e.keyCode == 117 ){
+            console.log('sending params');
+            socket.emit('set params', parameters.detection);
+        }
 
     
     });
