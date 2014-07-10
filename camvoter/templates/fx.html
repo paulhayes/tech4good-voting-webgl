@@ -87,17 +87,16 @@ void main()
   var parameters = {
     voters : 1,
     duration : 10,
-    resolution : {x:0,y:0}
+    resolution : {x:0,y:0},
+    time: 0, // The time in ms
+    progress: 0,
+    text: document.getElementById("textCanvas"),
+    textPosition: {x:0.001,y:0.001}
   };
   var glsl = Glsl({
     canvas: document.getElementById("viewport"),
     fragment: document.getElementById("fragment").textContent,
-    variables: {
-      time: 0, // The time in ms
-      progress: 0,
-      text: document.getElementById("textCanvas"),
-      textPosition: {x:0.001,y:0.001}
-    },
+    variables: parameters,
     update: function (time) {
       var easedVotes = 0.2 * ( window.totalVotes ) + 0.8 * ( window.lastTotalVotes ) ;
       window.lastTotalVotes = easedVotes;
@@ -127,7 +126,9 @@ void main()
     }
   })(glsl.variables.text.getContext("2d"));
   var gui = new dat.GUI();
-  
+  gui.remember(parameters);
+  gui.remember(parameters.textPosition);
+
   function onWindowResize( event ) {
       glsl.canvas.width = window.innerWidth;
       glsl.canvas.height = window.innerHeight;
@@ -155,13 +156,13 @@ void main()
 
   gui.add(glsl.variables,"fullscreen");
   //gui.add(glsl.variables,"progress",0,1);
-  gui.add(parameters,"voters",1,500);
-  gui.add(parameters,"duration",1,10);
+  gui.add(parameters,"voters");
+  gui.add(parameters,"duration");
   gui.add(glsl.variables.textPosition,"x",0.0001,1.0);
   gui.add(glsl.variables.textPosition,"y",0.0001,1.0);
 
 $(document).ready(function(){
-    setTimeout(renderText,500,"test","100px NovaSans","text");
+    //setTimeout(renderText,500,"","100px NovaSans","text");
     var width = 200, height = 200;
     var lastVoteCount = 0;
     var lastVoteTime = Date.now();
@@ -170,9 +171,12 @@ $(document).ready(function(){
     var voteDuration = 10;
     $(document).keypress(function(e){
         //console.log(e);
-        if( e.keyCode == 32 ) startVoting();
+        if( e.keyCode == 32 ) {          
+          //startVoting();
+          startCountdown();
+        }
         if( e.keyCode == 99 ) clearVoting();
-        
+
     
     });
     
@@ -210,6 +214,24 @@ $(document).ready(function(){
         totalVotes = 0;
         lastVoteCount = 0;
         isVoting = false;
+        renderText("","100px NovaSans","text");
+    }
+
+    var startCountdown = function(){
+      clearVoting();
+      var intervalId=0;
+      i=3;
+      renderText(i,"100px NovaSans","text");
+      intervalId = setInterval(function(){
+        i--;        
+        if(i<=0){
+          renderText("Go!","100px NovaSans","text");
+          startVoting();
+          clearInterval(intervalId);
+        }else{
+          renderText(i,"100px NovaSans","text");
+        }
+      },1000);
     }
 
     setInterval(function() {
