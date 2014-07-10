@@ -36,7 +36,6 @@ $(document).ready(function(){
         totalVotes += 0.5 * ( lastVoteCount + count ) * 0.001 * ( voteTime - lastVoteTime );
         lastVoteTime = voteTime;
         lastVoteCount = count;
-        window.totalVotes = totalVotes;
         $('#vote_count').html('<p>'+totalVotes+'</p>');
     });
 

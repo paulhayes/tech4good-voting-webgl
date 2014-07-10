@@ -24,7 +24,7 @@ maxImages = 100
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('fx.html')
 
 @socketio.on('get votes', namespace='/test')
 def test_message(message):
@@ -33,10 +33,11 @@ def test_message(message):
     votes = camv.get_vote_count()
     logger.debug('We have %d votes'%votes)
     #votes = random.randrange(1,2)
-    camv.image_hot.save('images/cam{}.jpg'.format(imageCount))
-    imageCount+=1
-    if imageCount == maxImages :
-        imageCount = 0;
+    if False:
+        camv.image_hot.save('images/cam{}.jpg'.format(imageCount))
+        imageCount+=1
+        if imageCount == maxImages :
+            imageCount = 0;
     #print( 'target {}'.format( camv.area_max ) );
     for b in camv.all_blobs:
         print('blob {}, {}'.format(b.angle(),b.area()))
