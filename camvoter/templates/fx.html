@@ -35,6 +35,7 @@ precision lowp float;
 #endif
 
 uniform vec2 resolution;
+uniform vec2 textPosition;
 uniform float progress;
 uniform float time;
 uniform sampler2D text;
@@ -65,12 +66,15 @@ void main()
 
   }
   
-  vec2 coord = gl_FragCoord.xy / resolution.y ;
-  coord.y *= 2.66;
-  vec4 textColor = texture2D(text, coord);
+  vec2 coord = (gl_FragCoord.xy - textPosition * resolution) * 0.01 * vec2( 0.375, 1 ) ;
+  bool vidVisible = all( lessThan( coord, vec2(1.)) );
+  if(vidVisible){
+      vec4 textColor = texture2D(text, coord);
+      c += 0.5 * textColor.rgb;
+  }
 
   //vec3 oscColor = mix(c, vec3(1, 1, 1)-c, 0.);
-  gl_FragColor = vec4(c, 1) + 0.5* textColor;  
+  gl_FragColor = vec4(c, 1);  
 }
 </script>
 
@@ -82,7 +86,8 @@ void main()
   window.votesRounded = 0;
   var parameters = {
     voters : 1,
-    duration : 10
+    duration : 10,
+    resolution : {x:0,y:0}
   };
   var glsl = Glsl({
     canvas: document.getElementById("viewport"),
@@ -90,33 +95,35 @@ void main()
     variables: {
       time: 0, // The time in ms
       progress: 0,
-      text: document.getElementById("textCanvas")
+      text: document.getElementById("textCanvas"),
+      textPosition: {x:0.001,y:0.001}
     },
     update: function (time) {
       var easedVotes = 0.2 * ( window.totalVotes ) + 0.8 * ( window.lastTotalVotes ) ;
       window.lastTotalVotes = easedVotes;
 
-
+      this.sync("textPosition");
       this.set("time", time / 1000 );
       this.set("progress", easedVotes / ( parameters.duration * parameters.voters ) );
-      this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
+      //this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
 
     }
   }).start();
   console.log(glsl.variables.text);
   var renderText = (function (ctx) {
-    return function() {
+    return function(text,font,textureName) {
       var votesStr = window.votesRounded.toString();
       ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-      ctx.font = "100px NovaSans";
+      //ctx.font = "100px NovaSans";
+      ctx.font = font;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillStyle = "#fff";
-      ctx.fillText(votesStr, ctx.canvas.width/2, ctx.canvas.height/2);
+      ctx.fillText(text, ctx.canvas.width/2, ctx.canvas.height/2);
       ctx.strokeStyle = "#113";
       ctx.lineWidth = 3;
-      ctx.strokeText(votesStr, ctx.canvas.width/2, ctx.canvas.height/2);
-      glsl.sync("text");
+      ctx.strokeText(text, ctx.canvas.width/2, ctx.canvas.height/2);
+      glsl.sync(textureName);
     }
   })(glsl.variables.text.getContext("2d"));
   var gui = new dat.GUI();
@@ -127,7 +134,7 @@ void main()
       glsl.gl.viewport( 0, 0, glsl.canvas.width, glsl.canvas.height );
       glsl.variables.screenWidth = window.innerWidth;
       glsl.variables.screenHeight = window.innerHeight;
-
+      glsl.set("resolution", {x:glsl.variables.screenWidth,y:glsl.variables.screenHeight});
   }
 
   function requestFullScreen() {
@@ -150,9 +157,11 @@ void main()
   //gui.add(glsl.variables,"progress",0,1);
   gui.add(parameters,"voters",1,500);
   gui.add(parameters,"duration",1,10);
+  gui.add(glsl.variables.textPosition,"x",0.0001,1.0);
+  gui.add(glsl.variables.textPosition,"y",0.0001,1.0);
 
 $(document).ready(function(){
-    setTimeout(renderText,500);
+    setTimeout(renderText,500,"test","100px NovaSans","text");
     var width = 200, height = 200;
     var lastVoteCount = 0;
     var lastVoteTime = Date.now();
@@ -184,7 +193,7 @@ $(document).ready(function(){
         var tmpVotesRounded =  Math.round(totalVotes);
         if( window.votesRounded != tmpVotesRounded ){
           window.votesRounded = tmpVotesRounded;
-          renderText();
+          renderText(window.votesRounded,"100px NovaSans","text");
         }
 
         
