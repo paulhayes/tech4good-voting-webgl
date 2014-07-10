@@ -17,10 +17,10 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 #display = scv.Display()
-cam = scv.Camera()
+cam = scv.Camera(0)
 camv = CamVoterHSV()
 imageCount = 1
-maxImages = 100
+maxImages = 10
 
 @app.route('/')
 def index():
@@ -34,7 +34,8 @@ def test_message(message):
     logger.debug('We have %d votes'%votes)
     #votes = random.randrange(1,2)
     if False:
-        camv.image_hot.save('images/cam{}.jpg'.format(imageCount))
+        camv.image_hot.save('images/cam_hot{}.jpg'.format(imageCount))
+        camv.image.save('images/cam{}.jpg'.format(imageCount))
         imageCount+=1
         if imageCount == maxImages :
             imageCount = 0;

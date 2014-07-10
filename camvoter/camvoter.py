@@ -25,7 +25,8 @@ BLOB_FILTER_DEFAULTS = {
     'thresh_V':140,
     'draw_color':scv.Color.PUCE,
     'draw_color_filtered':scv.Color.RED,
-    'colors': VOTING_COLORS
+    'colors': VOTING_COLORS,
+    'mask_file': 'images/mask.png'
     }
 
 
@@ -37,9 +38,10 @@ class CamVoter(object):
             self.image_HSV = image.toHSV()
         self.__dict__.update(BLOB_FILTER_DEFAULTS)
         self.__dict__.update(**kw)
+        self.mask = scv.Image(self.mask_file).flipHorizontal()
 
     def set_image(self, img):
-        self.image = img
+        self.image = img - self.mask
         self.image_HSV = img.toHSV()
 
     def get_vote_count(self):
