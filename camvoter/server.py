@@ -53,7 +53,19 @@ def test_message(message):
 @socketio.on('set params', namespace='/test')
 def set_params(message):
     camv.__dict__.update(message)
+
+@socketio.on('screencap', namespace='/test')
+def set_params(message):
+    global imageCount
+
+    camv.set_image(cam.getImage().flipHorizontal())
+    votes = camv.get_vote_count()
     
+    camv.image_hot.save('images/cam_hot{}.jpg'.format(imageCount))
+    camv.image.save('images/cam{}.jpg'.format(imageCount))
+    imageCount+=1
+    if imageCount == maxImages :
+        imageCount = 0
 
 @socketio.on('connect', namespace='/test')
 def test_connect():

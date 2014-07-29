@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hello World</title>
+  <title>Tech4Good Awards 2014</title>
   <style>
     @font-face {
       font-family: 'NovaSans';
@@ -11,12 +11,19 @@
       font-style: normal;
       }
 
+      @font-face {
+        font-family: 'Seasans';
+        src: url('static/PixelMaster.ttf') format('truetype');
+        font-weight: normal;
+        font-style: normal;
+      }
+
     html, body {
       margin:0;
     }
 
     body {
-      font-family: 'NovaSans';
+      font-family: Seasans;
     }
 
     
@@ -28,6 +35,7 @@
 <script src="static/js/dat.gui.js"></script>
 <script type="text/javascript" src="static/js/socket.io.min.js"></script>
 <script src="static/js/jquery-1.11.0.min.js"></script>
+<script src="static/js/glsl.min.js"></script>
 
 <script id="fragment" type="x-shader/x-fragment">
 #ifdef GL_ES
@@ -39,6 +47,9 @@ uniform vec2 textPosition;
 uniform float progress;
 uniform float time;
 uniform sampler2D text;
+uniform vec3 textGradientLeft;
+uniform vec3 textGradientRight;
+
 #define PI 3.1414159265359
 #define M  0.9
 #define D  0.6
@@ -70,17 +81,16 @@ void main()
   bool vidVisible = all( lessThan( coord, vec2(1.)) );
   if(vidVisible){
       vec4 textColor = texture2D(text, coord);
-      c += 0.5 * textColor.rgb;
+      c += 0.8 * mix( textGradientLeft/255., textGradientRight/255., coord.x) * textColor.rgb;
   }
 
   //vec3 oscColor = mix(c, vec3(1, 1, 1)-c, 0.);
   gl_FragColor = vec4(c, 1);  
 }
 </script>
-
-<script src="static/js/glsl.min.js"></script>
-
 <script>
+  var fontFamily = 'Seasans';
+  var fontSize = 200;
   if (!Glsl.supported()) alert("WebGL is not supported.");
   lastTotalVotes = window.totalVotes = 0;
   window.votesRounded = 0;
@@ -96,7 +106,9 @@ void main()
       area_max : 400,
       area_min : 10,
       thresh_V : 140
-    }
+    },
+    textGradientLeft : [ 0, 0, 0xff ],
+    textGradientRight : [ 0xd2, 0, 0xff ]    
   };
   var glsl = Glsl({
     canvas: document.getElementById("viewport"),
@@ -107,6 +119,8 @@ void main()
       window.lastTotalVotes = easedVotes;
 
       this.sync("textPosition");
+      this.sync("textGradientLeft");
+      this.sync("textGradientRight");
       this.set("time", time / 1000 );
       this.set("progress", easedVotes / ( parameters.duration * parameters.voters ) );
       //this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
@@ -169,6 +183,8 @@ void main()
   gui.add(parameters.detection,"area_min");
   gui.add(parameters.detection,"area_max");
   gui.add(parameters.detection,"thresh_V");
+  //gui.addColor(parameters,"textGradientLeft");
+  //gui.addColor(parameters,"textGradientRight");
 
 $(document).ready(function(){
     //setTimeout(renderText,500,"","100px NovaSans","text");
@@ -188,6 +204,9 @@ $(document).ready(function(){
         if( e.keyCode == 117 ){
             console.log('sending params');
             socket.emit('set params', parameters.detection);
+        }
+        if( e.keyCode == 116 ){
+            socket.emit('screencap', parameters.detection);
         }
 
     
@@ -210,7 +229,7 @@ $(document).ready(function(){
         var tmpVotesRounded =  Math.round(totalVotes);
         if( window.votesRounded != tmpVotesRounded ){
           window.votesRounded = tmpVotesRounded;
-          renderText(window.votesRounded,"100px NovaSans","text");
+          renderText(window.votesRounded,fontSize+"px "+fontFamily,"text");
         }
 
         
@@ -227,22 +246,22 @@ $(document).ready(function(){
         totalVotes = 0;
         lastVoteCount = 0;
         isVoting = false;
-        renderText("","100px NovaSans","text");
+        renderText("",fontSize+"px "+fontFamily,"text");
     }
 
     var startCountdown = function(){
       clearVoting();
       var intervalId=0;
       i=3;
-      renderText(i,"100px NovaSans","text");
+      renderText(i,fontSize+"px "+fontFamily,"text");
       intervalId = setInterval(function(){
         i--;        
         if(i<=0){
-          renderText("Go!","100px NovaSans","text");
+          renderText("Go!",fontSize+"px "+fontFamily,"text");
           startVoting();
           clearInterval(intervalId);
         }else{
-          renderText(i,"100px NovaSans","text");
+          renderText(i,fontSize+"px "+fontFamily,"text");
         }
       },1000);
     }

@@ -41,8 +41,12 @@ class CamVoter(object):
         self.mask = scv.Image(self.mask_file).flipHorizontal()
 
     def set_image(self, img):
+        #if img.size == self.mask.size:
         self.image = img - self.mask
-        self.image_HSV = img.toHSV()
+        #else:
+        #    self.image = img
+
+        self.image_HSV = self.image.toHSV()
 
     def get_vote_count(self):
         self.get_blobs()
