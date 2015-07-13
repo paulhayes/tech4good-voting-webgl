@@ -30,8 +30,8 @@
   </style>
 </head>
 <body>
-<canvas id="viewport" width="640" height="480"></canvas>
-<canvas id="textCanvas" width="640" height="240" style="display:none"></canvas>
+<canvas id="viewport" width="800" height="480"></canvas>
+<canvas id="textCanvas" width="800" height="240" style="display:none"></canvas>
 <script src="static/js/dat.gui.js"></script>
 <script type="text/javascript" src="static/js/socket.io.min.js"></script>
 <script src="static/js/jquery-1.11.0.min.js"></script>
@@ -77,7 +77,7 @@ void main()
 
   }
   
-  vec2 coord = (gl_FragCoord.xy - textPosition * resolution) * 0.01 * vec2( 0.375, 1 ) ;
+  vec2 coord = (gl_FragCoord.xy - textPosition * resolution) * 0.01 * vec2( 0.3, 1 ) + vec2(0,0);
   bool vidVisible = all( lessThan( coord, vec2(1.)) );
   if(vidVisible){
       vec4 textColor = texture2D(text, coord);
@@ -101,7 +101,7 @@ void main()
     time: 0, // The time in ms
     progress: 0,
     text: document.getElementById("textCanvas"),
-    textPosition: {x:0.001,y:0.001},
+    textPosition: {x:0.00,y:0.00},
     detection : {
       area_max : 400,
       area_min : 10,
@@ -180,9 +180,8 @@ void main()
   gui.add(parameters,"duration");
   gui.add(glsl.variables.textPosition,"x",0.0001,1.0);
   gui.add(glsl.variables.textPosition,"y",0.0001,1.0);
-  gui.add(parameters.detection,"area_min");
-  gui.add(parameters.detection,"area_max");
-  gui.add(parameters.detection,"thresh_V");
+
+
   //gui.addColor(parameters,"textGradientLeft");
   //gui.addColor(parameters,"textGradientRight");
 
@@ -218,16 +217,18 @@ $(document).ready(function(){
         
         //$('#vote_count').html('<p>Received: ' + JSON.stringify(msg.data) + '</p>');
         var voteTime = Date.now();
-        if( voteDuration < 0.001*( voteTime - voteStartTime ) ){
+        var voteTimeElapsed = ( voteTime - voteStartTime );
+        if( voteDuration < 0.001*voteTimeElapsed ){
             isVoting = false;
             voteTime = voteStartTime+1000*voteDuration;
         }
-        totalVotes += 0.5 * ( lastVoteCount + count ) * 0.001 * ( voteTime - lastVoteTime );
+        totalVotes += 0.5 * ( lastVoteCount + count );
+        // * 0.001 * ( voteTime - lastVoteTime );
         lastVoteTime = voteTime;
         lastVoteCount = count;
         window.totalVotes = totalVotes;
         var tmpVotesRounded =  Math.round(totalVotes);
-        if( window.votesRounded != tmpVotesRounded ){
+        if( window.votesRounded != tmpVotesRounded && voteTimeElapsed > 1000  ){
           window.votesRounded = tmpVotesRounded;
           renderText(window.votesRounded,fontSize+"px "+fontFamily,"text");
         }
@@ -253,15 +254,15 @@ $(document).ready(function(){
       clearVoting();
       var intervalId=0;
       i=3;
-      renderText(i,fontSize+"px "+fontFamily,"text");
+      renderText(i.toString(),fontSize+"px "+fontFamily,"text");
       intervalId = setInterval(function(){
         i--;        
         if(i<=0){
-          renderText("Go!",fontSize+"px "+fontFamily,"text");
           startVoting();
+          renderText("Go!!",fontSize+"px "+fontFamily,"text");
           clearInterval(intervalId);
         }else{
-          renderText(i,fontSize+"px "+fontFamily,"text");
+          renderText(i.toString(),fontSize+"px "+fontFamily,"text");
         }
       },1000);
     }
@@ -270,6 +271,8 @@ $(document).ready(function(){
         if( isVoting ) socket.emit('get votes', {'data':'nothing to say'});
         
     }, 100); 
+
+    
 });
 
 

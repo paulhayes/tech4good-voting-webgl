@@ -11,14 +11,15 @@ import random
 import SimpleCV as scv
 import cvutils
 from camvoter import CamVoterHSV, CamVoterCol
+from movementvoter import MovementVoter
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 #display = scv.Display()
-cam = scv.Camera(0)
-camv = CamVoterHSV()
+cam = scv.Camera(0,prop_set={"width":800,"height":600})
+camv = MovementVoter() #CamVoterHSV()
 imageCount = 1
 maxImages = 10
 
@@ -31,7 +32,7 @@ def test_message(message):
     global imageCount
     camv.set_image(cam.getImage().flipHorizontal())
     votes = camv.get_vote_count()
-    logger.debug('We have %d votes'%votes)
+    logger.debug('We have %f votes'%votes)
     #votes = random.randrange(1,2)
     if False:
         camv.image_hot.save('images/cam_hot{}.jpg'.format(imageCount))
@@ -52,7 +53,11 @@ def test_message(message):
 
 @socketio.on('set params', namespace='/test')
 def set_params(message):
-    camv.__dict__.update(message)
+    camv.set_params(message)
+
+@socketio.on('get params', namespace='/test')
+def get_params(message):
+    emit('params',camv.get_params() )   
 
 @socketio.on('screencap', namespace='/test')
 def set_params(message):

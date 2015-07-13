@@ -36,7 +36,7 @@ $(document).ready(function(){
         totalVotes += 0.5 * ( lastVoteCount + count ) * 0.001 * ( voteTime - lastVoteTime );
         lastVoteTime = voteTime;
         lastVoteCount = count;
-        $('#vote_count').html('<p>'+totalVotes+'</p>');
+        //$('#vote_count').html('<p>Votes '+totalVotes+'</p>');
     });
 
     var startVoting = function(){
@@ -46,8 +46,16 @@ $(document).ready(function(){
         lastVoteCount = 0;
     }
 
+    /*
     setInterval(function() {
         if( isVoting ) socket.emit('get votes', {'data':'nothing to say'});
         
-    }, 100); 
+    }, 40); */
+
+    var update = function(){
+        if( isVoting ) socket.emit('get votes', {'data':'nothing to say'});
+        window.requestAnimationFrame = update;
+    }
+
+    update();
 });

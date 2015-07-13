@@ -40,9 +40,16 @@ class CamVoter(object):
         self.__dict__.update(**kw)
         self.mask = scv.Image(self.mask_file).flipHorizontal()
 
+    def set_params(self,p):
+        self.__dict___.update(p)
+
+    def get_params(self):
+        return BLOB_FILTER_DEFAULTS.keys()
+
     def set_image(self, img):
         #if img.size == self.mask.size:
-        self.image = img - self.mask
+        self.image = img;
+        #self.image = img - self.mask
         #else:
         #    self.image = img
 
