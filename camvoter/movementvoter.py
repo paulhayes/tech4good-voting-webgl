@@ -6,7 +6,8 @@ import argparse
 
 MOVEMENT_FILTER_DEFAULTS = {
 	'threshold' : 25,
-	'multiplier': 1000
+	'multiplier': 1000,
+	'mask_file': 'images/mask-2015.png'
 }
 
 class MovementVoter:
@@ -15,9 +16,13 @@ class MovementVoter:
 		self.current_image = None
 		self.vote = 0
 		self.__dict__.update( MOVEMENT_FILTER_DEFAULTS )
+		self.mask = scv.Image(self.mask_file).flipHorizontal()
+		print( "{0} {1}".format(self.mask.width, self.mask.height) )
 
 	def set_image(self,img):
-		self.current_image = img.grayscale()
+
+		self.current_image = img.grayscale() - self.mask
+
 		if( self.last_image != None ): 
 			self.comparison_image = ( self.last_image - self.current_image ).binarize(self.threshold)
 			
@@ -32,6 +37,12 @@ class MovementVoter:
 
 	def get_params(self):
 		return MOVEMENT_FILTER_DEFAULTS.keys()
+
+	def clear_votes(self):
+		print("clearing votes"	)
+		self.last_image = None
+		if self.current_image : 
+			self.current_image.save('images/image.jpg')
 
 if __name__ == '__main__':
 	print("run as main")

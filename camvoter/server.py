@@ -27,6 +27,10 @@ maxImages = 10
 def index():
     return render_template('fx.html')
 
+@socketio.on('clear votes', namespace='/test')
+def clear_votes(message):
+    camv.clear_votes();
+
 @socketio.on('get votes', namespace='/test')
 def test_message(message):
     global imageCount

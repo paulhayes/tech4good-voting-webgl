@@ -31,7 +31,7 @@
 </head>
 <body>
 <canvas id="viewport" width="800" height="480"></canvas>
-<canvas id="textCanvas" width="800" height="240" style="display:none"></canvas>
+<canvas id="textCanvas" width="1024" height="240" style="display:none"></canvas>
 <script src="static/js/dat.gui.js"></script>
 <script type="text/javascript" src="static/js/socket.io.min.js"></script>
 <script src="static/js/jquery-1.11.0.min.js"></script>
@@ -77,7 +77,7 @@ void main()
 
   }
   
-  vec2 coord = (gl_FragCoord.xy - textPosition * resolution) * 0.01 * vec2( 0.3, 1 ) + vec2(0,0);
+  vec2 coord = (gl_FragCoord.xy - textPosition * resolution) * 0.01 * vec2( 0.23, 1 ) + vec2(0,0);
   bool vidVisible = all( lessThan( coord, vec2(1.)) );
   if(vidVisible){
       vec4 textColor = texture2D(text, coord);
@@ -107,6 +107,9 @@ void main()
       area_min : 10,
       thresh_V : 140
     },
+    scale:1,
+    graphScale:1,
+    digits:8,
     textGradientLeft : [ 0, 0, 0xff ],
     textGradientRight : [ 0xd2, 0, 0xff ]    
   };
@@ -122,7 +125,8 @@ void main()
       this.sync("textGradientLeft");
       this.sync("textGradientRight");
       this.set("time", time / 1000 );
-      this.set("progress", easedVotes / ( parameters.duration * parameters.voters ) );
+      this.set("progress", easedVotes / Math.pow(10, parameters.graphScale ) );
+        //( parameters.duration * parameters.voters ) );
       //this.set("resolution", {x:this.variables.screenWidth,y:this.variables.screenHeight});
 
     }
@@ -180,6 +184,8 @@ void main()
   gui.add(parameters,"duration");
   gui.add(glsl.variables.textPosition,"x",0.0001,1.0);
   gui.add(glsl.variables.textPosition,"y",0.0001,1.0);
+  gui.add(parameters,"scale",0.0,50000.0);
+  gui.add(parameters,"graphScale",0.0,10.0);
 
 
   //gui.addColor(parameters,"textGradientLeft");
@@ -193,6 +199,7 @@ $(document).ready(function(){
     var totalVotes = 0;
     var isVoting = false;
     var voteDuration = 10;
+    var showingResults = false;
     $(document).keypress(function(e){
         console.log(e);
         if( e.keyCode == 32 ) {          
@@ -213,14 +220,17 @@ $(document).ready(function(){
     
     var socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
     socket.on('vote count', function(msg) {
-        var count = msg.data.count;
+        var count = msg.data.count * parameters.scale;
         
         //$('#vote_count').html('<p>Received: ' + JSON.stringify(msg.data) + '</p>');
         var voteTime = Date.now();
         var voteTimeElapsed = ( voteTime - voteStartTime );
         if( voteDuration < 0.001*voteTimeElapsed ){
             isVoting = false;
+            showingResults = true;
             voteTime = voteStartTime+1000*voteDuration;
+            renderText("Result: "+votesToString(window.votesRounded),fontSize+"px "+fontFamily,"text");
+            return;
         }
         totalVotes += 0.5 * ( lastVoteCount + count );
         // * 0.001 * ( voteTime - lastVoteTime );
@@ -230,11 +240,18 @@ $(document).ready(function(){
         var tmpVotesRounded =  Math.round(totalVotes);
         if( window.votesRounded != tmpVotesRounded && voteTimeElapsed > 1000  ){
           window.votesRounded = tmpVotesRounded;
-          renderText(window.votesRounded,fontSize+"px "+fontFamily,"text");
+          renderText("Votes: "+votesToString(tmpVotesRounded),fontSize+"px "+fontFamily,"text");
         }
 
         
     });
+
+    var votesToString = function(txt){
+      txt = txt.toString();
+      while(txt<parameters.digits)
+            txt = " "+text;
+      return txt;
+    }
 
     var startVoting = function(){
         clearVoting();
@@ -247,14 +264,15 @@ $(document).ready(function(){
         totalVotes = 0;
         lastVoteCount = 0;
         isVoting = false;
+        socket.emit('clear votes', {'data':'nothing to say'});
         renderText("",fontSize+"px "+fontFamily,"text");
     }
 
     var startCountdown = function(){
       clearVoting();
       var intervalId=0;
-      i=3;
-      renderText(i.toString(),fontSize+"px "+fontFamily,"text");
+      i=4;
+      renderText("Ready?",fontSize+"px "+fontFamily,"text");
       intervalId = setInterval(function(){
         i--;        
         if(i<=0){
